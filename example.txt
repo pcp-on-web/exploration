@@ -1,0 +1,23 @@
+===SPARQL===
+
+prefix	pcp: <http://purl.org/pcp-on-web/ontology#> 
+prefix	rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>  
+prefix	rdfs: <http://www.w3.org/2000/01/rdf-schema#>  
+
+select (count(?doc) as ?docN) ?faculty ?year 
+where { 
+    ?doc pcp:praeses ?professor. 
+    ?doc a pcp:QualificationDocument. 
+    ?professor a pcp:Professor . 
+    ?doc pcp:faculty ?faculty. 
+    ?doc pcp:date ?docDate. 
+    bind (year(?docDate) as ?year ). 
+} group by ?faculty ?year order by asc(?year) asc(?faculty)
+
+
+
+===DESCRIPTION===
+Liste von Fakultäten
+
+
+
