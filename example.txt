@@ -14,8 +14,6 @@ where {
     bind (year(?docDate) as ?year ). 
 } group by ?faculty ?year order by asc(?year) asc(?faculty)
 
-
-
 ===DESCRIPTION===
 Liste von Fakultäten
 
