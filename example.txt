@@ -18,4 +18,3 @@ where {
 Liste von Fakultäten
 
 
-
