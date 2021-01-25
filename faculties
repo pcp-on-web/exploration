@@ -38,4 +38,4 @@ select distinct ?professor (SAMPLE(?professorLabel) as
 desc(?professorName) asc(?startingYear)
 
 ===DESCRIPTION===
-Liste von Fakultäten
+ At which faculty did professors have their very first chair and to which faculty did they move to throughout their career? At which faculty did professors work at the time of their death?
