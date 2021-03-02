@@ -1,11 +1,5 @@
-===DESCRIPTION===
- At which faculty did professors have their very first chair and to which faculty did they move to throughout their career? 
- At which faculty did professors work at the time of their death?
-===SPARQL===
-
-prefix	pcp: <http://purl.org/pcp-on-web/ontology#> 
-prefix	rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>  
-prefix	rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ ●	At which faculty did professors have their very first chair and to which faculty did they move to throughout their career? 
+ ●	At which faculty did professors work at the time of their death?
 
 select distinct ?professor (SAMPLE(?professorLabel) as
 ?professorName) ?period (SAMPLE(?position) as ?positionName)
@@ -39,8 +33,6 @@ select distinct ?professor (SAMPLE(?professorLabel) as
 ?period <http://purl.org/pcp-on-web/ontology#note> ?position. } } FILTER
 ((1500 <= year(?from) && year(?from) <= 1810) || (1500 <= year(?to) && year(?to) <= 1810)) . } group by ?professor ?period ?to order by
 desc(?professorName) asc(?startingYear)
-
-###
 
 ●	This query gives also the work outside the university
 
@@ -133,6 +125,86 @@ filter(1500<=year(?date) && year(?date)<=1810)}} group by ?place order by desc(?
 ●	Where did they study? 
 
 ###
+
+Education
+
+●	What kind of degree had a professor by the time of their first call? (How many professors became a professor without having a doctor title?)
+
+select distinct ?professor ?professorLabel ?facultyLabel 
+(min(?from) as ?startingYear) ?studySubject ?studyFrom ?studyTo ?gradType ?gradDate ?qualificationType ?qualificationAcademicTitle ?qualificationDate 
+where { ?professor <http://purl.org/pcp-on-web/ontology#hasPeriod> ?period. ?professor <http://www.w3.org/2000/01/rdf-schema#label> ?professorLabel. 
+?period <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Career>. 
+?period <http://purl.org/pcp-on-web/ontology#from> ?from. 
+?period <http://purl.org/pcp-on-web/ontology#periodBody> ?periodBody.  
+?periodBody <http://www.w3.org/2000/01/rdf-schema#label> ?facultyLabel. 
+OPTIONAL {?professor <http://purl.org/pcp-on-web/ontology#hasPeriod> ?study. 
+?study a <http://purl.org/pcp-on-web/ontology#Study> . 
+?study <http://purl.org/pcp-on-web/ontology#from> ?studyFrom . 
+?study <http://purl.org/pcp-on-web/ontology#to> ?studyTo . 
+?study <http://purl.org/pcp-on-web/ontology#subjectStudied> ?studySubject . } 
+OPTIONAL {?professor <http://purl.org/pcp-on-web/ontology#hasPeriod> ?graduation. 
+?graduation a <http://purl.org/pcp-on-web/ontology#Graduation> . 
+?graduation <http://purl.org/pcp-on-web/ontology#date> ?gradDate . 
+?graduation <http://purl.org/pcp-on-web/ontology#graduationType> ?gradType . } 
+OPTIONAL {?professor <http://purl.org/pcp-on-web/ontology#hasPeriod> ?qualification. 
+?qualification a <http://purl.org/pcp-on-web/ontology#Qualification> . 
+?qualification <http://purl.org/pcp-on-web/ontology#date> ?qualificationDate . 
+?qualification <http://purl.org/pcp-on-web/ontology#periodDocument> ?qualificationPeriodDocument . 
+?qualificationPeriodDocument <http://purl.org/pcp-on-web/ontology#academicalTitle> ?qualificationAcademicTitle . 
+?qualificationPeriodDocument <http://purl.org/pcp-on-web/ontology#type> ?qualificationType . } 
+FILTER ( 1500 <= year(?from) && year(?from) <= 1810) . } 
+group by ?professor ?professorLabel ?facultyLabel ?studySubject ?studyFrom ?studyTo ?gradType ?gradDate ?qualificationType ?qualificationAcademicTitle 
+?qualificationDate order by desc(?professor) asc(?startingYear)
+
+###
+
+Publications
+
+●	Give me all professors with publications and publication year, divide into Gattung/Fach!
+
+●	Give me all professors who got mentioned in publications as “Widmungsempfänger” and/or praeses
+
+●	Give me all professors and their publication dates plus at which faculty those professors taught.
+
+###
+
+Career
+
+●	Give me the universities where professors studied and where they got their first professorship!
+
+select distinct ?professor ?professorLabel ?facultyLabel ?periodBody ?from ?studySubject ?studyLocationLabel ?studyFrom ?studyTo ?gradType ?gradDate 
+?graduationPlaceLabel ?qualificationType ?qualificationAcademicTitle ?qualificationDate 
+where { ?professor <http://purl.org/pcp-on-web/ontology#hasPeriod> ?period. 
+?professor <http://www.w3.org/2000/01/rdf-schema#label> ?professorLabel. 
+?period <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Career>. 
+?period <http://purl.org/pcp-on-web/ontology#from> ?from. ?period <http://purl.org/pcp-on-web/ontology#periodBody> ?periodBody. 
+?periodBody <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Faculty>. 
+?periodBody <http://www.w3.org/2000/01/rdf-schema#label> ?facultyLabel. 
+OPTIONAL {?professor <http://purl.org/pcp-on-web/ontology#hasPeriod> ?study. 
+?study a <http://purl.org/pcp-on-web/ontology#Study> . 
+?study <http://purl.org/pcp-on-web/ontology#periodBody> ?studyPeriodBody. 
+?studyPeriodBody <http://www.w3.org/2000/01/rdf-schema#label> ?studyLocationLabel. 
+?study <http://purl.org/pcp-on-web/ontology#from> ?studyFrom . 
+?study <http://purl.org/pcp-on-web/ontology#to> ?studyTo . 
+?study <http://purl.org/pcp-on-web/ontology#subjectStudied> ?studySubject . } 
+OPTIONAL {?professor <http://purl.org/pcp-on-web/ontology#hasPeriod> ?graduation. 
+?graduation a <http://purl.org/pcp-on-web/ontology#Graduation> . 
+?graduation <http://purl.org/pcp-on-web/ontology#periodPlace> ?graduationPlace . 
+?graduationPlace <http://www.w3.org/2000/01/rdf-schema#label> ?graduationPlaceLabel. 
+?graduation <http://purl.org/pcp-on-web/ontology#date> ?gradDate . 
+?graduation <http://purl.org/pcp-on-web/ontology#graduationType> ?gradType . } 
+OPTIONAL {?professor <http://purl.org/pcp-on-web/ontology#hasPeriod> ?qualification. 
+?qualification a <http://purl.org/pcp-on-web/ontology#Qualification> . 
+?qualification <http://purl.org/pcp-on-web/ontology#periodBody> ?qualificationPeriodBody . 
+?qualificationPeriodBody <http://purl.org/pcp-on-web/ontology#bodyPlace> ?qualificationBodyPlace. 
+?qualificationBodyPlace <http://www.w3.org/2000/01/rdf-schema#label> ?qualificationBodyPlaceLabel. 
+?qualification <http://purl.org/pcp-on-web/ontology#date> ?qualificationDate . 
+?qualification <http://purl.org/pcp-on-web/ontology#periodDocument> ?qualificationPeriodDocument . 
+?qualificationPeriodDocument <http://purl.org/pcp-on-web/ontology#academicalTitle> ?qualificationAcademicTitle . 
+?qualificationPeriodDocument <http://purl.org/pcp-on-web/ontology#type> ?qualificationType . } 
+OPTIONAL { ?period <http://purl.org/pcp-on-web/ontology#from> ?otherfrom . 
+FILTER( ?otherfrom < ?from ) . } . FILTER ( !bound(?otherfrom) && 1500 <= year(?from) && year(?from) <= 1810) . } order by desc(?professor) asc(?from)
+
 
 More specific topic:
 
@@ -322,6 +394,13 @@ UNION {?s <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://uni-helmsted
 ●	What was the profession of the father? (probably not yet able to answer because of the missing data)
 
 ●	What is the number of professors born per city?
+
+Education
+
+Q3. What kind of degree had a professor by the time of their first call? (How many professors became a professor without having a doctor title?)
+
+●	select distinct ?professor ?professorLabel ?facultyLabel (min(?from) as ?startingYear) ?studySubject ?studyFrom ?studyTo ?gradType ?gradDate ?qualificationType ?qualificationAcademicTitle ?qualificationDate where { ?professor <http://purl.org/pcp-on-web/ontology#hasPeriod> ?period. ?professor <http://www.w3.org/2000/01/rdf-schema#label> ?professorLabel. ?period <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Career>. ?period <http://purl.org/pcp-on-web/ontology#from> ?from. ?period <http://purl.org/pcp-on-web/ontology#periodBody> ?periodBody.  ?periodBody <http://www.w3.org/2000/01/rdf-schema#label> ?facultyLabel. OPTIONAL {?professor <http://purl.org/pcp-on-web/ontology#hasPeriod> ?study. ?study a <http://purl.org/pcp-on-web/ontology#Study> . ?study <http://purl.org/pcp-on-web/ontology#from> ?studyFrom . ?study <http://purl.org/pcp-on-web/ontology#to> ?studyTo . ?study <http://purl.org/pcp-on-web/ontology#subjectStudied> ?studySubject . } OPTIONAL {?professor <http://purl.org/pcp-on-web/ontology#hasPeriod> ?graduation. ?graduation a <http://purl.org/pcp-on-web/ontology#Graduation> . ?graduation <http://purl.org/pcp-on-web/ontology#date> ?gradDate . ?graduation <http://purl.org/pcp-on-web/ontology#graduationType> ?gradType . } OPTIONAL {?professor <http://purl.org/pcp-on-web/ontology#hasPeriod> ?qualification. ?qualification a <http://purl.org/pcp-on-web/ontology#Qualification> . ?qualification <http://purl.org/pcp-on-web/ontology#date> ?qualificationDate . ?qualification <http://purl.org/pcp-on-web/ontology#periodDocument> ?qualificationPeriodDocument . ?qualificationPeriodDocument <http://purl.org/pcp-on-web/ontology#academicalTitle> ?qualificationAcademicTitle . ?qualificationPeriodDocument <http://purl.org/pcp-on-web/ontology#type> ?qualificationType . } FILTER ( 1500 <= year(?from) && year(?from) <= 1810) . } group by ?professor ?professorLabel ?facultyLabel ?studySubject ?studyFrom ?studyTo ?gradType ?gradDate ?qualificationType ?qualificationAcademicTitle ?qualificationDate order by desc(?professor) asc(?startingYear)
+
 
 ●	Where did the professor study?
 
