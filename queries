@@ -42,6 +42,36 @@ desc(?professorName) asc(?startingYear)
 
 ###
 
+This query gives also the work outside the university
+○	select distinct ?professor (SAMPLE(?professorLabel) as ?professorName) 
+?period (SAMPLE(?work) as ?workName) (SAMPLE(?subjectsTaught) as ?subjectsTaughtName) 
+(SAMPLE(?faculty) as ?facultyName) (SAMPLE(?academy) as ?academyName) (min(?from) as ?startingYear) ?to 
+where { ?professor <http://purl.org/pcp-on-web/ontology#hasPeriod> ?period. ?professor <http://www.w3.org/2000/01/rdf-schema#label> ?professorLabel. 
+?period <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?periodType. 
+optional { ?period <http://purl.org/pcp-on-web/ontology#from> ?from. } 
+optional { ?period <http://purl.org/pcp-on-web/ontology#to> ?to. } 
+{ ?period <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Career>. 
+optional {?period <http://purl.org/pcp-on-web/ontology#periodBody> ?periodBody. 
+optional {?periodBody <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Faculty>. 
+?periodBody <http://www.w3.org/2000/01/rdf-schema#label> ?faculty. } 
+optional {?periodBody <http://purl.org/pcp-on-web/ontology#isPartOf> ?isPartOf. 
+?isPartOf <http://www.w3.org/2000/01/rdf-schema#label> ?academy. } } optional {?period <http://purl.org/pcp-on-web/ontology#subjectsTaught> ?subjectsTaught.} } 
+UNION { ?period <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Chair>. 
+optional { ?period <http://www.w3.org/2000/01/rdf-schema#label> ?subjectsTaught. } 
+optional { ?period <http://purl.org/pcp-on-web/ontology#periodBody> ?facultyPeriodBody. 
+?facultyPeriodBody <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Faculty>. 
+?facultyPeriodBody <http://www.w3.org/2000/01/rdf-schema#label> ?faculty . } 
+optional { ?period <http://purl.org/pcp-on-web/ontology#periodBody> ?academyPeriodBody. 
+?academyPeriodBody <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Academy>. 
+?academyPeriodBody <http://www.w3.org/2000/01/rdf-schema#label> ?academy . } 
+optional { ?period <http://purl.org/pcp-on-web/ontology#note> ?work. } } 
+UNION { ?period <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Office>. 
+optional {?period <http://www.w3.org/2000/01/rdf-schema#label> ?work.} } 
+FILTER ((1500 <= year(?from) && year(?from) <= 1810) || (1500 <= year(?to) && year(?to) <= 1810)) . } 
+group by ?professor ?period ?to order by desc(?professorName) asc(?startingYear)
+
+###
+
 Geographical background
 
 ●	Where were they born? Give me the places where professors were born between 1500-1810.
