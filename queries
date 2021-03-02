@@ -122,8 +122,6 @@ filter(1500<=year(?date) && year(?date)<=1810)} UNION {?professor <http://purl.o
 ?period <hhttp://purl.org/pcp-on-web/ontology#date> ?date.  
 filter(1500<=year(?date) && year(?date)<=1810)}} group by ?place order by desc(?n)" > prof_born_place_count.txt
 
-●	Where did they study? 
-
 ###
 
 Education
@@ -205,6 +203,7 @@ OPTIONAL {?professor <http://purl.org/pcp-on-web/ontology#hasPeriod> ?qualificat
 OPTIONAL { ?period <http://purl.org/pcp-on-web/ontology#from> ?otherfrom . 
 FILTER( ?otherfrom < ?from ) . } . FILTER ( !bound(?otherfrom) && 1500 <= year(?from) && year(?from) <= 1810) . } order by desc(?professor) asc(?from)
 
+###
 
 More specific topic:
 
@@ -395,13 +394,6 @@ UNION {?s <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://uni-helmsted
 
 ●	What is the number of professors born per city?
 
-Education
-
-Q3. What kind of degree had a professor by the time of their first call? (How many professors became a professor without having a doctor title?)
-
-●	select distinct ?professor ?professorLabel ?facultyLabel (min(?from) as ?startingYear) ?studySubject ?studyFrom ?studyTo ?gradType ?gradDate ?qualificationType ?qualificationAcademicTitle ?qualificationDate where { ?professor <http://purl.org/pcp-on-web/ontology#hasPeriod> ?period. ?professor <http://www.w3.org/2000/01/rdf-schema#label> ?professorLabel. ?period <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Career>. ?period <http://purl.org/pcp-on-web/ontology#from> ?from. ?period <http://purl.org/pcp-on-web/ontology#periodBody> ?periodBody.  ?periodBody <http://www.w3.org/2000/01/rdf-schema#label> ?facultyLabel. OPTIONAL {?professor <http://purl.org/pcp-on-web/ontology#hasPeriod> ?study. ?study a <http://purl.org/pcp-on-web/ontology#Study> . ?study <http://purl.org/pcp-on-web/ontology#from> ?studyFrom . ?study <http://purl.org/pcp-on-web/ontology#to> ?studyTo . ?study <http://purl.org/pcp-on-web/ontology#subjectStudied> ?studySubject . } OPTIONAL {?professor <http://purl.org/pcp-on-web/ontology#hasPeriod> ?graduation. ?graduation a <http://purl.org/pcp-on-web/ontology#Graduation> . ?graduation <http://purl.org/pcp-on-web/ontology#date> ?gradDate . ?graduation <http://purl.org/pcp-on-web/ontology#graduationType> ?gradType . } OPTIONAL {?professor <http://purl.org/pcp-on-web/ontology#hasPeriod> ?qualification. ?qualification a <http://purl.org/pcp-on-web/ontology#Qualification> . ?qualification <http://purl.org/pcp-on-web/ontology#date> ?qualificationDate . ?qualification <http://purl.org/pcp-on-web/ontology#periodDocument> ?qualificationPeriodDocument . ?qualificationPeriodDocument <http://purl.org/pcp-on-web/ontology#academicalTitle> ?qualificationAcademicTitle . ?qualificationPeriodDocument <http://purl.org/pcp-on-web/ontology#type> ?qualificationType . } FILTER ( 1500 <= year(?from) && year(?from) <= 1810) . } group by ?professor ?professorLabel ?facultyLabel ?studySubject ?studyFrom ?studyTo ?gradType ?gradDate ?qualificationType ?qualificationAcademicTitle ?qualificationDate order by desc(?professor) asc(?startingYear)
-
-
 ●	Where did the professor study?
 
 <Leipzig>
@@ -525,6 +517,48 @@ where { ?professor <http://catalogus-professorum.org/cpd/hasPeriod> ?period.
 ●	Did the professor publish dissertations?
 
 ●	Was the professor präses? (praeses)
+
+###
+
+Tests
+
+Listing every existing Person in BOTH datasets (<http://catalogus-professorum.org/cpd/Person> UNION <http://uni-helmstedt.hab.de/cph/model/Person>) 
+that have the same surname (?lsurname = ?hsurname)
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar 
+-sparql "select ?s {{?s <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://catalogus-professorum.org/cpd/Person> .
+?s <http://catalogus-professorum.org/cpd/surname> ?lsurname.} 
+UNION {?s <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://uni-helmstedt.hab.de/cph/model/Person>. 
+?s <http://uni-helmstedt.hab.de/cph/model/surname> ?hsurname} Filter(?lsurname = ?hsurname)}" 
+-kb "http://aditus.catalogus-professorum.org/lipsiensium,http://uni-helmstedt.hab.de/cph"
+
+●	Selecting everybody in Helmstedt that has the same surname
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar 
+-sparql "select distinct ?s ?s1 {?s <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://uni-helmstedt.hab.de/cph/model/Person>. 
+?s <http://uni-helmstedt.hab.de/cph/model/surname> ?hsurname1. 
+?s1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://uni-helmstedt.hab.de/cph/model/Person>. 
+?s1 <http://uni-helmstedt.hab.de/cph/model/surname> ?hsurname2. Filter((?hsurname1 = ?hsurname2) && (?s != ?s1))}" 
+-kb "http://aditus.catalogus-professorum.org/lipsiensium,http://uni-helmstedt.hab.de/cph" > sameName.txt
+
+●	Selecting facts from a specific subject
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar 
+-sparql "select ?s ?p ?o {?s ?p ?o. Filter(?s = <http://uni-helmstedt.hab.de/cph/person/10009>)}" 
+-kb "http://aditus.catalogus-professorum.org/lipsiensium,http://uni-helmstedt.hab.de/cph"
+
+●	Selecting every fact from a subject as well as every link to it:
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar 
+-sparql "select ?s ?p ?o {?s ?p ?o. Filter(?s = <http://uni-helmstedt.hab.de/cph/person/13114> || ?o = <http://uni-helmstedt.hab.de/cph/person/13114> )}" 
+-kb "http://aditus.catalogus-professorum.org/lipsiensium,http://uni-helmstedt.hab.de/cph"
+
+●	term "mense" to find out how much data of the Helmstedt Portal is to be found rdf data.
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar 
+-sparql "select ?s ?slabel where { ?s <http://www.w3.org/2000/01/rdf-schema#label> ?slabel. FILTER (CONTAINS(?slabel, 'mense')) }" 
+-kb "http://uni-helmstedt.hab.de/cph" -install > contains_mense_result.txt
+
 
 ●	Was the professor respondant?
 
