@@ -1,0 +1,423 @@
+===DESCRIPTION===
+ At which faculty did professors have their very first chair and to which faculty did they move to throughout their career? 
+ At which faculty did professors work at the time of their death?
+===SPARQL===
+
+prefix	pcp: <http://purl.org/pcp-on-web/ontology#> 
+prefix	rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>  
+prefix	rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+select distinct ?professor (SAMPLE(?professorLabel) as
+?professorName) ?period (SAMPLE(?position) as ?positionName)
+(SAMPLE(?subjectsTaught) as ?subjectsTaughtName) (SAMPLE(?faculty) as
+?facultyName) (SAMPLE(?academy) as ?academyName) (min(?from) as
+?startingYear) ?to where { ?professor
+<http://purl.org/pcp-on-web/ontology#hasPeriod> ?period. ?professor
+<http://www.w3.org/2000/01/rdf-schema#label> ?professorLabel. ?period
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?periodType. ?period
+<http://purl.org/pcp-on-web/ontology#periodBody> ?facultyPeriodBody.
+?facultyPeriodBody <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
+<http://purl.org/pcp-on-web/ontology#Faculty>. optional { ?period
+<http://purl.org/pcp-on-web/ontology#from> ?from. } optional { ?period
+<http://purl.org/pcp-on-web/ontology#to> ?to. } optional { ?facultyPeriodBody
+<http://www.w3.org/2000/01/rdf-schema#label> ?faculty . } { ?period
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
+<http://purl.org/pcp-on-web/ontology#Career>. optional ?periodBody
+<http://purl.org/pcp-on-web/ontology#isPartOf> ?isPartOf. ?isPartOf
+<http://www.w3.org/2000/01/rdf-schema#label> ?academy. } optional {
+?period <http://www.w3.org/2000/01/rdf-schema#label> ?positon. } optional {
+?period <http://purl.org/pcp-on-web/ontology#subjectsTaught>
+?subjectsTaught. } } UNION { ?period
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
+<http://purl.org/pcp-on-web/ontology#Chair>. optional { ?period
+<http://www.w3.org/2000/01/rdf-schema#label> ?subjectsTaught. } optional {
+?period <http://purl.org/pcp-on-web/ontology#periodBody>
+?academyPeriodBody. ?academyPeriodBody
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
+<http://purl.org/pcp-on-web/ontology#Academy>. ?academyPeriodBody
+<http://www.w3.org/2000/01/rdf-schema#label> ?academy . } optional {
+?period <http://purl.org/pcp-on-web/ontology#note> ?position. } } FILTER
+((1500 <= year(?from) && year(?from) <= 1810) || (1500 <= year(?to) && year(?to) <= 1810)) . } group by ?professor ?period ?to order by
+desc(?professorName) asc(?startingYear)
+
+###
+
+Geographical background
+
+●	Where were they born? Give me the places where professors were born between 1500-1810.
+
+●	list of professors and their born place (Helmstedt)
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar -kb "http://purl.org/pcp-on-web/ontology,http://purl.org/pcp-on-web/dataset" -
+
+sparql "select ?professor ?place (year(?date) as ?year)  
+where {?professor <http://purl.org/pcp-on-web/ontology#hasPeriod> 
+?period. ?period <http://purl.org/pcp-on-web/ontology#periodPlace> ?place. 
+?period <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Birth>. 
+?period <http://purl.org/pcp-on-web/ontology#date> ?date. 
+filter(1500<=year(?date) && year(?date)<=1810)} order by asc(year(?date))" > prof_born_place_helmstedt.txt
+
+●	number of professors born per city (Helmstedt)
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar -kb "http://purl.org/pcp-on-web/ontology,http://purl.org/pcp-on-web/dataset" -
+
+sparql "select ?place (count(?place) as ?n) 
+where {?professor <http://purl.org/pcp-on-web/ontology#hasPeriod> ?period. 
+?period <http://purl.org/pcp-on-web/ontology#periodPlace> ?place. 
+?period <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Birth>. 
+?period <http://purl.org/pcp-on-web/ontology#date> ?date. 
+filter(1500<=year(?date) && year(?date)<=1810)} group by ?place order by desc(?n)" > prof_born_place_count_helmstedt.txt
+
+●	list of professors and their born place (leipzig)
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar -kb "http://purl.org/pcp-on-web/ontology,http://purl.org/pcp-on-web/dataset"
+
+sparql "select ?professor ?place where {?professor <hhttp://purl.org/pcp-on-web/ontology#hasPeriod> 
+?period. ?period <hhttp://purl.org/pcp-on-web/ontology#periodPlace> ?place. ?period 
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <hhttp://purl.org/pcp-on-web/ontology#Birth>. 
+?period <hhttp://purl.org/pcp-on-web/ontology#date> ?date. 
+filter(1500<=year(?date) && year(?date)<=1810)}” > prof_born_place_leipzig.txt
+
+●	number of professors born per city (leipzig)
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar -kb "http://purl.org/pcp-on-web/ontology,http://purl.org/pcp-on-web/dataset" 
+sparql "select ?place (count(?place) as ?n) 
+where {?professor <hhttp://purl.org/pcp-on-web/ontology#hasPeriod> ?period. 
+?period <hhttp://purl.org/pcp-on-web/ontology#periodPlace> ?place. 
+?period <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <hhttp://purl.org/pcp-on-web/ontology#Birth>. 
+?period <hhttp://purl.org/pcp-on-web/ontology#date> ?date. 
+filter(1500<=year(?date) && year(?date)<=1810)} group by ?place order by desc(?n)" > prof_born_place_count_leipzig.txt
+
+●	number of professors born per city (both cities)
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar -kb "http://purl.org/pcp-on-web/ontology,http://purl.org/pcp-on-web/dataset" 
+sparql "select ?place (count(?place) as ?n) 
+where {{?professor <hhttp://purl.org/pcp-on-web/ontology#hasPeriod> ?period. 
+?period <hhttp://purl.org/pcp-on-web/ontology#periodPlace> ?place. 
+?period <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <hhttp://purl.org/pcp-on-web/ontology#Birth>. 
+?period <hhttp://purl.org/pcp-on-web/ontology#date> ?date.  
+filter(1500<=year(?date) && year(?date)<=1810)} UNION {?professor <http://purl.org/pcp-on-web/ontology#hasPeriod> ?period. 
+?period <http://purl.org/pcp-on-web/ontology#periodPlace> ?place. 
+?period <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Birth>. 
+?period <hhttp://purl.org/pcp-on-web/ontology#date> ?date.  
+filter(1500<=year(?date) && year(?date)<=1810)}} group by ?place order by desc(?n)" > prof_born_place_count.txt
+
+●	Where did they study? 
+
+###
+
+More specific topic:
+
+●	Give me all dissertations/disputations (Qualifikationsschrift) a professor was involved.
+
+●	Give me all dissertations/disputations (Qualifikationsschrift) a professor was mentioned as praeses (Präses).
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar -kb "http://purl.org/pcp-on-web/ontology,http://purl.org/pcp-on-web/dataset" 
+sparql "select ?doc ?docLabel ?docType ?professor ?professorLabel 
+where {{?doc <http://purl.org/pcp-on-web/ontology#praeses> ?professor. 
+?professor <http://www.w3.org/2000/01/rdf-schema#label> ?professorLabel. 
+?doc <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?docType. 
+optional {?doc <http://www.w3.org/2000/01/rdf-schema#label> ?docLabel}. 
+?professor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Professor> .} 
+UNION { ?doc <http://purl.org/pcp-on-web/ontology#author> ?professor. 
+?professor <http://www.w3.org/2000/01/rdf-schema#label> ?professorLabel. 
+?doc <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?docType. 
+optional {?doc <http://www.w3.org/2000/01/rdf-schema#label> ?docLabel}. 
+?professor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Professor> . 
+}}" > doc_praeses_result.txt
+
+●	number of dissertations/report per professor:
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar -kb "http://purl.org/pcp-on-web/ontology,http://purl.org/pcp-on-web/dataset" 
+sparql "select (count(?doc) as ?docN) ?docType ?professor ?professorLabel 
+where {{?doc <http://purl.org/pcp-on-web/ontology#praeses> ?professor. 
+?professor <http://www.w3.org/2000/01/rdf-schema#label> ?professorLabel. 
+?doc <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?docType. 
+optional {?doc <http://www.w3.org/2000/01/rdf-schema#label> ?docLabel}. 
+?professor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Professor> .} 
+UNION { ?doc <http://purl.org/pcp-on-web/ontology#author> ?professor. 
+?professor <http://www.w3.org/2000/01/rdf-schema#label> ?professorLabel. 
+?doc <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?docType. 
+optional {?doc <http://www.w3.org/2000/01/rdf-schema#label> ?docLabel}. 
+?professor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Professor> .}} 
+group by ?docType ?professor ?professorLabel order by asc(?professor) desc(?docN)" > doc_type_count.txt
+	
+●	Number of documents in which the professor was Praeses sorted by number of documents (split by type)
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar -kb "http://purl.org/pcp-on-web/ontology,http://purl.org/pcp-on-web/dataset" 
+sparql "select (count(?doc) as ?docN) ?docType ?professor ?professorLabel where {{?doc <http://purl.org/pcp-on-web/ontology#praeses> ?professor. 
+?professor <http://www.w3.org/2000/01/rdf-schema#label> ?professorLabel. 
+?doc <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?docType. 
+optional {?doc <http://www.w3.org/2000/01/rdf-schema#label> ?docLabel}. 
+?professor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Professor> .} 
+UNION { ?doc <http://purl.org/pcp-on-web/ontology#author> ?professor. 
+?professor <http://www.w3.org/2000/01/rdf-schema#label> ?professorLabel. 
+?doc <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?docType. 
+optional {?doc <http://www.w3.org/2000/01/rdf-schema#label> ?docLabel}. 
+?professor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Professor> .} } 
+group by ?docType ?professor ?professorLabel order by desc(?docN)" > doc_type_count_desc.txt
+
+●	Total Number of documents  (Qualification +  Report) in which the professor was Praeses sorted by the total
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar -kb "http://purl.org/pcp-on-web/ontology,http://purl.org/pcp-on-web/dataset" 
+sparql "select (count(?doc) as ?docN) ?docType ?professor ?professorLabel where {{?doc <http://purl.org/pcp-on-web/ontology#praeses> ?professor. 
+?professor <http://www.w3.org/2000/01/rdf-schema#label> ?professorLabel. 
+?doc <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Resource>. 
+optional {?doc <http://www.w3.org/2000/01/rdf-schema#label> ?docLabel}. 
+?professor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Professor> .} 
+UNION { ?doc <http://purl.org/pcp-on-web/ontology#author> ?professor. 
+?professor <http://www.w3.org/2000/01/rdf-schema#label> ?professorLabel. 
+?doc <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?docType. 
+optional {?doc <http://www.w3.org/2000/01/rdf-schema#label> ?docLabel}. 
+?professor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Professor> .}  } 
+group by ?docType ?professor ?professorLabel order by desc(?docN)" > doc_total_count_desc.txt
+
+●	Give me all dissertations/disputations (Qualifikationsschrift) a professor was mentioned as a well-wisher.
+
+●	Give me all dissertations/disputations (Qualifikationsschrift) which are dedicated to a person/professor.
+
+●	Give me all dissertations/disputations (Qualifikationsschrift) held by the philosophical/theological/medicine/law faculty.
+
+(There is no way to know the Theses faculty with the data available e.g. https://opacplus.bib-bvb.de/TouchPoint_touchpoint/start.do?Query=1120%3D%22%5C%22VD17+12%3A148842S%5C%22%22&Language=De&SearchProfile=Altbestand.
+We could check (maybe) what the professor was teaching at the specific year, even so it will not be absolutely right.)
+The query bellow agroup only year/faculty of Qualification.
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar -kb "http://purl.org/pcp-on-web/ontology,http://purl.org/pcp-on-web/dataset" 
+sparql "select (count(?doc) as ?docN) ?faculty (year(?docDate) as ?year)  
+where { ?doc <http://purl.org/pcp-on-web/ontology#praeses> ?professor. 
+?professor <http://www.w3.org/2000/01/rdf-schema#label> ?professorLabel. 
+?doc <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#QualificationDocument>. 
+?doc <http://purl.org/pcp-on-web/ontology#faculty> ?faculty. 
+?doc <http://purl.org/pcp-on-web/ontology#date> ?docDate. 
+optional { ?doc <http://www.w3.org/2000/01/rdf-schema#label> ?docLabel}. 
+?professor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Professor> . 
+filter(datatype(?docDate)= <http://www.w3.org/2001/XMLSchema#date> ).} 
+group by ?faculty ?docDate order by desc(?faculty) asc(?year)" > doc_total_count_faculty_desc_year.txt
+
+●	Number of qualifications per professor per year:
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar -kb "http://purl.org/pcp-on-web/ontology,http://purl.org/pcp-on-web/dataset" 
+sparql "select (count(?doc) as ?docN) ?professor ?year where { { select ?doc ?professor (year(?docDate) as ?year)  
+where { ?doc <http://purl.org/pcp-on-web/ontology#praeses> ?professor. 
+?professor <http://www.w3.org/2000/01/rdf-schema#label> ?professorLabel. 
+?doc <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#QualificationDocument>. 
+?doc <http://purl.org/pcp-on-web/ontology#faculty> ?faculty. 
+?doc <http://purl.org/pcp-on-web/ontology#date> ?docDate. 
+optional { ?doc <http://www.w3.org/2000/01/rdf-schema#label> ?docLabel}. 
+?professor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Professor> . 
+filter(datatype(?docDate)= <http://www.w3.org/2001/XMLSchema#date> )}}} group by ?professor ?year order by asc(?year)" > doc_total_count_professor_asc_year.txt
+
+●	Qualification / year / professor
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar -kb "http://purl.org/pcp-on-web/ontology,http://purl.org/pcp-on-web/dataset" 
+sparql "select distinct ?doc ?professor ?year where { { select ?doc ?professor (year(?docDate) as ?year)  
+where { ?doc <http://purl.org/pcp-on-web/ontology#praeses> ?professor. 
+?professor <http://www.w3.org/2000/01/rdf-schema#label> ?professorLabel. 
+?doc <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#QualificationDocument>. 
+?doc <http://purl.org/pcp-on-web/ontology#faculty> ?faculty. 
+?doc <http://purl.org/pcp-on-web/ontology#date> ?docDate. 
+optional { ?doc <http://www.w3.org/2000/01/rdf-schema#label> ?docLabel}. 
+?professor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/pcp-on-web/ontology#Professor> . 
+filter(datatype(?docDate)= <http://www.w3.org/2001/XMLSchema#date> ).}}} order by asc(?year)" > qualification_professor_asc_year.txt
+
+●	Selecting professors that teach “Eloquenz”
+      
+java -jar kbox-v0.0.1-alpha3-RC16.jar -kb "http://purl.org/pcp-on-web/ontology,http://purl.org/pcp-on-web/dataset" 
+sparql "select ?s where {?s <hhttp://purl.org/pcp-on-web/ontology#subjectsTaught> ?o. filter regex(?o, 'eloquenz', 'i')}"
+
+●	Counting the number of professors that teach “anatomie”
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar -kb "http://purl.org/pcp-on-web/ontology,http://purl.org/pcp-on-web/dataset" 
+sparql "select (count(distinct ?s) as ?n) where {?s <hhttp://purl.org/pcp-on-web/ontology#subjectsTaught> ?o. filter regex(?o, 'anatomie', 'i')}"
+
+●	Selecting all triples on which the term “eloquentia” appears as subject
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar -kb "http://purl.org/pcp-on-web/ontology,http://purl.org/pcp-on-web/dataset" 
+sparql "select ?s ?p ?o where {?s ?p ?o. filter regex(?o, 'eloquentia', 'i')}" > eloquentia_result_query.txt
+
+●	Selecting all data from the Lipsiensium dataset on which the word “ethica” occurs
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar -kb "http://purl.org/pcp-on-web/ontology,http://purl.org/pcp-on-web/dataset" 
+sparql "select ?s ?p ?o where {?s ?p ?o. filter(regex(?o, 'ethica', 'i') && regex(str(?s), 
+'http://aditus.catalogus-professorum.org/lipsiensium'))}" > ethica_leipzig_query.txt
+
+●	Selecting all data from the Helmsted dataset on which the word “ethica” occurs
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar -kb "http://purl.org/pcp-on-web/ontology,http://purl.org/pcp-on-web/dataset" 
+sparql "select ?s ?p ?o where {?s ?p ?o. filter(regex(?o, 'ethica', 'i') && regex(str(?s), 
+'http://aditus.catalogus-professorum.org/helmstedt'))}" > ethica_helmstedt_query.txt
+
+Where was a professor born?
+
+<Leipzig> 
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar -sparql "select ?s ?name ?periodPlace ?periodPlaceLabel 
+where {?s <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://catalogus-professorum.org/cpd/Professor>. 
+?s <http://www.w3.org/2000/01/rdf-schema#label> ?name. 
+?s <http://catalogus-professorum.org/cpd/hasPeriod> ?period. 
+?period a <http://catalogus-professorum.org/cpd/Birth>.
+?period <http://catalogus-professorum.org/cpd/periodPlace> ?periodPlace. 
+?periodPlace <http://www.w3.org/2000/01/rdf-schema#label> ?periodPlaceLabel}" 
+-kb "http://aditus.catalogus-professorum.org/lipsiensium,http://uni-helmstedt.hab.de/cph" > leipzig_bornplace_result.txt
+
+<Helmstedt>
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar 
+sparql "select ?s ?name ?periodPlace ?periodPlaceLabel 
+where {?s <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://uni-helmstedt.hab.de/cph/model/Professor>. 
+?s <http://www.w3.org/2000/01/rdf-schema#label> ?name. 
+?s <http://uni-helmstedt.hab.de/cph/model/hasPeriod> ?period. 
+?period a <http://uni-helmstedt.hab.de/cph/model/Birth>. 
+?period <http://uni-helmstedt.hab.de/cph/model/periodPlace> ?periodPlace. 
+?periodPlace <http://www.w3.org/2000/01/rdf-schema#label> ?periodPlaceLabel}" 
+-kb "http://aditus.catalogus-professorum.org/lipsiensium,http://uni-helmstedt.hab.de/cph" > helmstedt_bornplace_result.txt
+
+<Together>
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar 
+sparql "select ?s ?name ?periodPlace ?periodPlaceLabel 
+where {{?s <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://catalogus-professorum.org/cpd/Professor>. 
+?s <http://www.w3.org/2000/01/rdf-schema#label> ?name. 
+?s <http://catalogus-professorum.org/cpd/hasPeriod> ?period. 
+?period a <http://catalogus-professorum.org/cpd/Birth> . 
+?period <http://catalogus-professorum.org/cpd/periodPlace> ?periodPlace. 
+?periodPlace <http://www.w3.org/2000/01/rdf-schema#label> ?periodPlaceLabel} 
+UNION {?s <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://uni-helmstedt.hab.de/cph/model/Professor>. 
+?s <http://www.w3.org/2000/01/rdf-schema#label> ?name. 
+?s <http://uni-helmstedt.hab.de/cph/model/hasPeriod> ?period. 
+?period a <http://uni-helmstedt.hab.de/cph/model/Birth>. 
+?period <http://uni-helmstedt.hab.de/cph/model/periodPlace> ?periodPlace. 
+?periodPlace <http://www.w3.org/2000/01/rdf-schema#label> ?periodPlaceLabel }}" 
+-kb "http://aditus.catalogus-professorum.org/lipsiensium,http://uni-helmstedt.hab.de/cph" > helmstedt_leipzig_bornplace_result.txt
+
+What was the profession of the father? (probably not yet able to answer because of the missing data)
+
+What is the number of professors born per city?
+
+Where did the professor study?
+
+<Leipzig>
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar 
+sparql "select ?professor ?plabel ?school ?slabel 
+where { ?professor <http://catalogus-professorum.org/cpd/hasPeriod> ?period. 
+?professor <http://www.w3.org/2000/01/rdf-schema#label> ?plabel. 
+?professor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://catalogus-professorum.org/cpd/Professor>.
+?period <http://catalogus-professorum.org/cpd/periodBody> ?school. 
+?school a <http://catalogus-professorum.org/cpd/School>. 
+?school <http://www.w3.org/2000/01/rdf-schema#label> ?slabel.}" 
+-kb "http://aditus.catalogus-professorum.org/lipsiensium,http://uni-helmstedt.hab.de/cph" > leipzig_professor_study_result.txt
+
+<Helmstedt>
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar 
+sparql "select ?professor ?plabel ?school ?slabel 
+where { ?professor <http://uni-helmstedt.hab.de/cph/model/hasPeriod> ?period. 
+?professor <http://www.w3.org/2000/01/rdf-schema#label> ?plabel. 
+?professor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://uni-helmstedt.hab.de/cph/model/Professor>. 
+?period <http://uni-helmstedt.hab.de/cph/model/periodBody> ?school. 
+?school <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://uni-helmstedt.hab.de/cph/model/Academy>. 
+?school <http://www.w3.org/2000/01/rdf-schema#label> ?slabel.}" 
+-kb "http://aditus.catalogus-professorum.org/lipsiensium,http://uni-helmstedt.hab.de/cph" > helmstedt_professor_study_result.txt
+
+<Together>
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar 
+sparql "select ?professor ?plabel ?school ?slabel 
+where { 
+{ ?professor <http://uni-helmstedt.hab.de/cph/model/hasPeriod> ?period. 
+?professor <http://www.w3.org/2000/01/rdf-schema#label> ?plabel. 
+?professor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://uni-helmstedt.hab.de/cph/model/Professor>. 
+?period <http://uni-helmstedt.hab.de/cph/model/periodBody> ?school. 
+?school <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://uni-helmstedt.hab.de/cph/model/Academy>. 
+?school <http://www.w3.org/2000/01/rdf-schema#label> ?slabel.}
+UNION
+{?professor <http://uni-helmstedt.hab.de/cph/model/hasPeriod> ?period. 
+?professor <http://www.w3.org/2000/01/rdf-schema#label> ?plabel. 
+?professor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://uni-helmstedt.hab.de/cph/model/Professor>. 
+?period <http://uni-helmstedt.hab.de/cph/model/periodBody> ?school. 
+?school <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://uni-helmstedt.hab.de/cph/model/Academy>. 
+?school <http://www.w3.org/2000/01/rdf-schema#label> ?slabel.}}" 
+-kb "http://aditus.catalogus-professorum.org/lipsiensium,http://uni-helmstedt.hab.de/cph" > helmstedt_leipzig_professor_study_result.txt
+
+What did the professor study?
+
+<Leipzig>
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar 
+sparql "select ?professor ?plabel ?school ?slabel ?subjectStudied 
+where { ?professor <http://catalogus-professorum.org/cpd/hasPeriod> ?period. 
+?professor <http://www.w3.org/2000/01/rdf-schema#label> ?plabel. 
+?professor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://catalogus-professorum.org/cpd/Professor>. 
+?period <http://catalogus-professorum.org/cpd/periodBody> ?school. 
+?school a <http://catalogus-professorum.org/cpd/School>. 
+?school <http://www.w3.org/2000/01/rdf-schema#label> ?slabel. 
+?professor <http://catalogus-professorum.org/cpd/hasPeriod> ?studyPeriod. 
+?studyPeriod <http://catalogus-professorum.org/cpd/subjectStudied> ?subjectStudied. }" 
+-kb "http://aditus.catalogus-professorum.org/lipsiensium,http://uni-helmstedt.hab.de/cph"
+
+<Helmstedt>
+
+It seems the data from Helmstadt does not contain the professor’s alma mater
+
+How many professors had the titel of Lizenziat / Magister / Doktor / juris, philosophiae, medicinae, theologiae
+
+<Leipzig>
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar 
+-sparql "select ?subjectStudiedLabel (count(?subjectStudiedLabel) as ?n) 
+where { ?professor <http://catalogus-professorum.org/cpd/hasPeriod> ?period. 
+?professor <http://www.w3.org/2000/01/rdf-schema#label> ?plabel. 
+?professor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://catalogus-professorum.org/cpd/Professor>. 
+?period <http://catalogus-professorum.org/cpd/periodBody> ?school. 
+?school a <http://catalogus-professorum.org/cpd/School>. 
+?school <http://www.w3.org/2000/01/rdf-schema#label> ?slabel. 
+?professor <http://catalogus-professorum.org/cpd/hasPeriod> ?studyPeriod. 
+?studyPeriod <http://catalogus-professorum.org/cpd/subjectStudied> ?subjectStudied. 
+BIND(STR(?subjectStudied) as ?subjectStudiedLabel)} group by ?subjectStudiedLabel order by ?n" 
+-kb "http://aditus.catalogus-professorum.org/lipsiensium,http://uni-helmstedt.hab.de/cph"
+
+<Helmstedt>
+
+It seems the data from Helmstadt does not contain the titel, but just the course where the professor uses to teach
+
+What academic titles did the professor gain before his first professorship?
+
+What academic titles did the professor gain after he became professor in Leipzig or Helmstedt?
+
+Was the professor married?
+
+java -jar kbox-v0.0.1-alpha3-RC16.jar 
+-sparql "select ?pLabel 
+where { ?professor <http://catalogus-professorum.org/cpd/hasPeriod> ?period. 
+?professor <http://www.w3.org/2000/01/rdf-schema#label> ?plabel. 
+?professor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://catalogus-professorum.org/cpd/Professor>.. 
+?professor <http://catalogus-professorum.org/cpd/hasPeriod> ?familyPeriod. 
+?familyPeriod a <http://catalogus-professorum.org/cpd/Family>. }" 
+-kb "http://aditus.catalogus-professorum.org/lipsiensium,http://uni-helmstedt.hab.de/cph"
+
+What was the maiden name of  was the professor married to? (relations to other professor families ate the same university?)
+
+Who was the father of the professors wife?
+
+How old was the professor when he got married?
+
+Did he marry after becoming professor in Leipzig or Helmstedt?
+
+How old was the professor when he became professor in Leipzig or Helmstedt?
+
+Was it his first professorship?
+
+At which faculties did the professor work?
+
+Did the professor hold offices outside the university?
+
+How many titles did the professor publish?
+
+Did the professor publish dissertations?
+
+Was the professor präses? (praeses)
+
+Was the professor respondant?
+
+How many dedications are among the published dissertations?
