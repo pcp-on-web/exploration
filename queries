@@ -42,8 +42,9 @@ desc(?professorName) asc(?startingYear)
 
 ###
 
-This query gives also the work outside the university
-○	select distinct ?professor (SAMPLE(?professorLabel) as ?professorName) 
+●	This query gives also the work outside the university
+
+select distinct ?professor (SAMPLE(?professorLabel) as ?professorName) 
 ?period (SAMPLE(?work) as ?workName) (SAMPLE(?subjectsTaught) as ?subjectsTaughtName) 
 (SAMPLE(?faculty) as ?facultyName) (SAMPLE(?academy) as ?academyName) (min(?from) as ?startingYear) ?to 
 where { ?professor <http://purl.org/pcp-on-web/ontology#hasPeriod> ?period. ?professor <http://www.w3.org/2000/01/rdf-schema#label> ?professorLabel. 
