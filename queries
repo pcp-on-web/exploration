@@ -1,6 +1,6 @@
 The following queries had been done with the first version of the PCP model. See Ontology.
 
- ●	At which faculty did professors have their very first chair and to which faculty did they move to throughout their career? 
+ ●	Q1: At which faculty did professors have their very first chair and to which faculty did they move to throughout their career? 
  ●	At which faculty did professors work at the time of their death?
 
 select distinct ?professor (SAMPLE(?professorLabel) as
@@ -36,7 +36,7 @@ select distinct ?professor (SAMPLE(?professorLabel) as
 ((1500 <= year(?from) && year(?from) <= 1810) || (1500 <= year(?to) && year(?to) <= 1810)) . } group by ?professor ?period ?to order by
 desc(?professorName) asc(?startingYear)
 
-●	This query gives also the work outside the university
+●	Q1+: This query gives also the work outside the university
 
 select distinct ?professor (SAMPLE(?professorLabel) as ?professorName) 
 ?period (SAMPLE(?work) as ?workName) (SAMPLE(?subjectsTaught) as ?subjectsTaughtName) 
@@ -128,7 +128,7 @@ filter(1500<=year(?date) && year(?date)<=1810)}} group by ?place order by desc(?
 
 Education
 
-●	What kind of degree had a professor by the time of their first call? (How many professors became a professor without having a doctor title?)
+●	Q3: What kind of degree had a professor by the time of their first call? (How many professors became a professor without having a doctor title?)
 
 select distinct ?professor ?professorLabel ?facultyLabel 
 (min(?from) as ?startingYear) ?studySubject ?studyFrom ?studyTo ?gradType ?gradDate ?qualificationType ?qualificationAcademicTitle ?qualificationDate 
@@ -170,7 +170,7 @@ Publications
 
 Career
 
-●	Give me the universities where professors studied and where they got their first professorship!
+●	Q5: Give me the universities where professors studied and where they got their first professorship!
 
 select distinct ?professor ?professorLabel ?facultyLabel ?periodBody ?from ?studySubject ?studyLocationLabel ?studyFrom ?studyTo ?gradType ?gradDate 
 ?graduationPlaceLabel ?qualificationType ?qualificationAcademicTitle ?qualificationDate 
